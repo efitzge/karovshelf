@@ -126,6 +126,7 @@ export type Database = {
           id: string
           notes: string | null
           owner_id: string
+          scan_batch_id: string | null
           scan_legibility: string | null
           scan_spine_text: string | null
           shareable: boolean
@@ -138,6 +139,7 @@ export type Database = {
           id?: string
           notes?: string | null
           owner_id: string
+          scan_batch_id?: string | null
           scan_legibility?: string | null
           scan_spine_text?: string | null
           shareable?: boolean
@@ -150,6 +152,7 @@ export type Database = {
           id?: string
           notes?: string | null
           owner_id?: string
+          scan_batch_id?: string | null
           scan_legibility?: string | null
           scan_spine_text?: string | null
           shareable?: boolean
@@ -167,6 +170,13 @@ export type Database = {
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "library_items_scan_batch_id_fkey"
+            columns: ["scan_batch_id"]
+            isOneToOne: false
+            referencedRelation: "scan_batches"
             referencedColumns: ["id"]
           },
         ]

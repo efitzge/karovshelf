@@ -13,6 +13,36 @@ export async function confirmItem(itemId: string) {
   revalidatePath("/library");
 }
 
+export async function confirmMany(itemIds: string[]) {
+  if (itemIds.length === 0) return;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("library_items")
+    .update({ confirmed: true })
+    .in("id", itemIds);
+  if (error) throw error;
+  revalidatePath("/library");
+}
+
+/** Marks every confirmed book shareable in one shot. Un-sharing a specific
+ * book afterward is just the per-item Shareable checkbox - no separate
+ * "remove from sharing" action needed. */
+export async function shareAllConfirmed() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not signed in.");
+
+  const { error } = await supabase
+    .from("library_items")
+    .update({ shareable: true })
+    .eq("owner_id", user.id)
+    .eq("confirmed", true);
+  if (error) throw error;
+  revalidatePath("/library");
+}
+
 export async function setShareable(itemId: string, shareable: boolean) {
   const supabase = await createClient();
   const { error } = await supabase

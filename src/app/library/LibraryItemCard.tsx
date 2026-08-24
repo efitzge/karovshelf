@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { confirmItem, setShareable, deleteItem, correctBook } from "./actions";
+import ViewShelfPhotos from "./ViewShelfPhotos";
+import { isHighConfidence } from "./confidence";
 
 export type LibraryItemWithBook = {
   id: string;
@@ -16,7 +18,9 @@ export type LibraryItemWithBook = {
     authors: string[];
     genre: string | null;
     cover_url: string | null;
+    is_placeholder: boolean;
   } | null;
+  scan_batch: { photo_paths: string[] } | null;
 };
 
 const LEGIBILITY_LABEL: Record<string, string> = {
@@ -37,6 +41,7 @@ export default function LibraryItemCard({ item }: { item: LibraryItemWithBook })
 
   const legibility = item.scan_legibility;
   const needsAttention = legibility === "guess" || !item.book;
+  const showPhotoLink = !isHighConfidence(item) && item.scan_batch != null;
 
   return (
     <div className="rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
@@ -63,6 +68,9 @@ export default function LibraryItemCard({ item }: { item: LibraryItemWithBook })
               <div className="mt-1 text-xs text-amber-600 dark:text-amber-500">
                 {legibility ? LEGIBILITY_LABEL[legibility] ?? legibility : "no catalogue match"}
               </div>
+            )}
+            {showPhotoLink && item.scan_batch && (
+              <ViewShelfPhotos photoPaths={item.scan_batch.photo_paths} />
             )}
           </div>
         </div>
