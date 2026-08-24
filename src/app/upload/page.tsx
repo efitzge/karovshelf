@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import UploadForm from "./UploadForm";
+import BatchThumbnails from "./BatchThumbnails";
 
 const STATUS_LABEL: Record<string, string> = {
   uploaded: "Queued - not yet scanned",
@@ -42,10 +43,13 @@ export default async function UploadPage() {
             {batches.map((b) => (
               <li
                 key={b.id}
-                className="flex items-center justify-between rounded border border-neutral-200 px-3 py-2 text-sm dark:border-neutral-800"
+                className="rounded border border-neutral-200 px-3 py-2 text-sm dark:border-neutral-800"
               >
-                <span>{b.photo_paths.length} photo(s) - {new Date(b.created_at).toLocaleString()}</span>
-                <span className="text-neutral-500">{STATUS_LABEL[b.status] ?? b.status}</span>
+                <div className="flex items-center justify-between">
+                  <span>{b.photo_paths.length} photo(s) - {new Date(b.created_at).toLocaleString()}</span>
+                  <span className="text-neutral-500">{STATUS_LABEL[b.status] ?? b.status}</span>
+                </div>
+                <BatchThumbnails photoPaths={b.photo_paths} />
               </li>
             ))}
           </ul>

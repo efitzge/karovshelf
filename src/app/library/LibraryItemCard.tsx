@@ -17,10 +17,12 @@ export type LibraryItemWithBook = {
     title: string;
     authors: string[];
     genre: string | null;
+    category: string | null;
     cover_url: string | null;
     is_placeholder: boolean;
   } | null;
   scan_batch: { photo_paths: string[] } | null;
+  source_photo_path: string | null;
 };
 
 const LEGIBILITY_LABEL: Record<string, string> = {
@@ -41,7 +43,10 @@ export default function LibraryItemCard({ item }: { item: LibraryItemWithBook })
 
   const legibility = item.scan_legibility;
   const needsAttention = legibility === "guess" || !item.book;
-  const showPhotoLink = !isHighConfidence(item) && item.scan_batch != null;
+  const photoPaths = item.source_photo_path
+    ? [item.source_photo_path]
+    : item.scan_batch?.photo_paths ?? [];
+  const showPhotoLink = !isHighConfidence(item) && photoPaths.length > 0;
 
   return (
     <div className="rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
@@ -58,6 +63,7 @@ export default function LibraryItemCard({ item }: { item: LibraryItemWithBook })
             <div className="truncate text-sm text-neutral-500">
               {(item.book?.authors ?? []).join(", ") || "Unknown author"}
               {item.book?.genre ? ` · ${item.book.genre}` : ""}
+              {item.book?.category ? ` · ${item.book.category}` : ""}
             </div>
             {item.scan_spine_text && (
               <div className="mt-1 truncate text-xs text-neutral-400">
@@ -69,9 +75,7 @@ export default function LibraryItemCard({ item }: { item: LibraryItemWithBook })
                 {legibility ? LEGIBILITY_LABEL[legibility] ?? legibility : "no catalogue match"}
               </div>
             )}
-            {showPhotoLink && item.scan_batch && (
-              <ViewShelfPhotos photoPaths={item.scan_batch.photo_paths} />
-            )}
+            {showPhotoLink && <ViewShelfPhotos photoPaths={photoPaths} />}
           </div>
         </div>
       ) : (

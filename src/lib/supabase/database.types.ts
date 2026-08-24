@@ -60,6 +60,7 @@ export type Database = {
       books: {
         Row: {
           authors: string[]
+          category: string | null
           cover_url: string | null
           created_at: string
           fetched_at: string
@@ -79,6 +80,7 @@ export type Database = {
         }
         Insert: {
           authors?: string[]
+          category?: string | null
           cover_url?: string | null
           created_at?: string
           fetched_at?: string
@@ -98,6 +100,7 @@ export type Database = {
         }
         Update: {
           authors?: string[]
+          category?: string | null
           cover_url?: string | null
           created_at?: string
           fetched_at?: string
@@ -130,6 +133,7 @@ export type Database = {
           scan_legibility: string | null
           scan_spine_text: string | null
           shareable: boolean
+          source_photo_path: string | null
         }
         Insert: {
           book_id: string
@@ -143,6 +147,7 @@ export type Database = {
           scan_legibility?: string | null
           scan_spine_text?: string | null
           shareable?: boolean
+          source_photo_path?: string | null
         }
         Update: {
           book_id?: string
@@ -156,6 +161,7 @@ export type Database = {
           scan_legibility?: string | null
           scan_spine_text?: string | null
           shareable?: boolean
+          source_photo_path?: string | null
         }
         Relationships: [
           {

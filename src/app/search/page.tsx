@@ -16,7 +16,7 @@ export default async function SearchPage({
   let query = supabase
     .from("library_items")
     .select(
-      "id, condition, book:books!inner(title, authors, genre, cover_url), owner:profiles!inner(id, display_name, neighbourhood)"
+      "id, condition, book:books!inner(title, authors, genre, category, cover_url), owner:profiles!inner(id, display_name, neighbourhood)"
     )
     .eq("shareable", true)
     .eq("confirmed", true)
@@ -32,7 +32,13 @@ export default async function SearchPage({
   type Result = {
     id: string;
     condition: string | null;
-    book: { title: string; authors: string[]; genre: string | null; cover_url: string | null } | null;
+    book: {
+      title: string;
+      authors: string[];
+      genre: string | null;
+      category: string | null;
+      cover_url: string | null;
+    } | null;
     owner: { id: string; display_name: string; neighbourhood: string } | null;
   };
   const results = (data ?? []) as unknown as Result[];
@@ -73,6 +79,7 @@ export default async function SearchPage({
                 <div className="text-sm text-neutral-500">
                   {(r.book?.authors ?? []).join(", ")}
                   {r.book?.genre ? ` · ${r.book.genre}` : ""}
+                  {r.book?.category ? ` · ${r.book.category}` : ""}
                 </div>
                 <div className="mt-1 text-xs text-neutral-400">
                   {r.owner?.display_name} · {r.owner?.neighbourhood}
