@@ -19,7 +19,7 @@ export default function LoginPage() {
           priority
         />
       </div>
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-sm rounded-2xl bg-background/95 p-6 shadow-sm">
         <h1 className="mb-1 text-2xl font-semibold">KarovShelf</h1>
         <p className="mb-6 text-sm text-neutral-500">
           Sign in with the email and PIN you were given.

@@ -12,7 +12,7 @@ const LINKS = [
 
 export default function SiteNav({ displayName }: { displayName?: string }) {
   return (
-    <nav className="flex flex-wrap items-center gap-4 border-b border-neutral-200 px-4 py-3 text-sm dark:border-neutral-800">
+    <nav className="flex flex-wrap items-center gap-4 border-b border-neutral-200 bg-background/90 px-4 py-3 text-sm backdrop-blur-sm dark:border-neutral-800">
       <span className="font-semibold">KarovShelf</span>
       {LINKS.map((l) => (
         <Link key={l.href} href={l.href} className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100">

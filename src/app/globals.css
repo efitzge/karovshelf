@@ -27,3 +27,41 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.page-shell {
+  min-height: 100svh;
+  background-color: var(--art-surface);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.page-login { background-image: url('/art/background-login.webp'); }
+.page-home { background-image: url('/art/background-home.webp'); }
+.page-upload { background-image: url('/art/background-upload.webp'); }
+.page-library { background-image: url('/art/background-library.webp'); }
+.page-search { background-image: url('/art/background-search.webp'); }
+.page-requests { background-image: url('/art/background-requests.webp'); }
+.page-profile { background-image: url('/art/background-profile.webp'); }
+
+@media (max-width: 720px) {
+  .page-shell {
+    background-position: center top;
+    background-size: auto 100svh;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  /* No dark variant of these backgrounds exists yet - fall back to the
+     plain dark surface color rather than showing a light parchment photo
+     behind light-on-dark text. */
+  .page-shell {
+    background-image: none;
+  }
+}
+
+@media (prefers-reduced-data: reduce) {
+  .page-shell {
+    background-image: none;
+  }
+}
