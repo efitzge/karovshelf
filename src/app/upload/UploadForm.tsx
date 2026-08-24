@@ -8,27 +8,35 @@ export default function UploadForm({ userId }: { userId: string }) {
   const [status, setStatus] = useState<"idle" | "uploading" | "done" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
   const [batchId, setBatchId] = useState<string | null>(null);
+  const [uploadedCount, setUploadedCount] = useState(0);
 
   async function handleUpload() {
     if (files.length === 0) return;
     setStatus("uploading");
     setError(null);
+    setUploadedCount(0);
 
     const supabase = createClient();
     const newBatchId = crypto.randomUUID();
 
     try {
-      const photoPaths: string[] = [];
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const ext = file.name.includes(".") ? file.name.split(".").pop() : "jpg";
-        const path = `${userId}/${newBatchId}/photo${String(i).padStart(2, "0")}.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from("shelf-photos")
-          .upload(path, file, { contentType: file.type || "image/jpeg" });
-        if (uploadError) throw uploadError;
-        photoPaths.push(path);
-      }
+      // Uploaded in parallel rather than one at a time - with several
+      // multi-MB phone photos, waiting for each to finish before starting
+      // the next made a 9-photo batch take roughly 9x as long as it needed
+      // to for no real benefit (Storage has no problem with concurrent
+      // writes to different paths).
+      const photoPaths = await Promise.all(
+        files.map(async (file, i) => {
+          const ext = file.name.includes(".") ? file.name.split(".").pop() : "jpg";
+          const path = `${userId}/${newBatchId}/photo${String(i).padStart(2, "0")}.${ext}`;
+          const { error: uploadError } = await supabase.storage
+            .from("shelf-photos")
+            .upload(path, file, { contentType: file.type || "image/jpeg" });
+          if (uploadError) throw uploadError;
+          setUploadedCount((n) => n + 1);
+          return path;
+        })
+      );
 
       const { error: insertError } = await supabase.from("scan_batches").insert({
         owner_id: userId,
@@ -83,7 +91,9 @@ export default function UploadForm({ userId }: { userId: string }) {
         disabled={files.length === 0 || status === "uploading"}
         className="w-fit rounded bg-neutral-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
       >
-        {status === "uploading" ? "Uploading..." : "Upload"}
+        {status === "uploading"
+          ? `Uploading... (${uploadedCount}/${files.length})`
+          : "Upload"}
       </button>
     </div>
   );
