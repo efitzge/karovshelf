@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { addManualBook } from "./actions";
+import { GENRES } from "./genres";
 
 const CATEGORIES = ["", "Fiction", "Non-fiction", "Judaica"];
 
@@ -60,12 +61,18 @@ export default function AddBookForm() {
           </label>
           <label className="flex flex-col gap-1 text-xs">
             Genre
-            <input
+            <select
               value={genre}
               onChange={(e) => setGenre(e.target.value)}
-              placeholder="Optional"
               className="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
-            />
+            >
+              <option value="">Uncategorised</option>
+              {GENRES.map((g) => (
+                <option key={g} value={g}>
+                  {g}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="flex flex-col gap-1 text-xs">
             Category

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { confirmItem, setShareable, deleteItem, correctBook } from "./actions";
 import ViewShelfPhotos from "./ViewShelfPhotos";
 import { isHighConfidence } from "./confidence";
+import { GENRES } from "./genres";
 
 export type LibraryItemWithBook = {
   id: string;
@@ -35,7 +36,9 @@ export default function LibraryItemCard({ item }: { item: LibraryItemWithBook })
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(item.book?.title ?? "");
   const [authors, setAuthors] = useState((item.book?.authors ?? []).join(", "));
-  const [genre, setGenre] = useState(item.book?.genre ?? "");
+  const [genre, setGenre] = useState(
+    item.book?.genre && item.book.genre !== "Uncategorised" ? item.book.genre : ""
+  );
   const [pending, startTransition] = useTransition();
   const [gone, setGone] = useState(false);
 
@@ -98,11 +101,18 @@ export default function LibraryItemCard({ item }: { item: LibraryItemWithBook })
           </label>
           <label className="flex flex-col gap-1 text-xs">
             Genre
-            <input
+            <select
               value={genre}
               onChange={(e) => setGenre(e.target.value)}
               className="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
-            />
+            >
+              <option value="">Uncategorised</option>
+              {GENRES.map((g) => (
+                <option key={g} value={g}>
+                  {g}
+                </option>
+              ))}
+            </select>
           </label>
         </div>
       )}
