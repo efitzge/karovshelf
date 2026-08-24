@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import SearchResultsView, { type SearchResult } from "./SearchResultsView";
+import PageHero from "@/components/PageHero";
 
 export default async function SearchPage() {
   const supabase = await createClient();
@@ -26,12 +27,11 @@ export default async function SearchPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-xl font-semibold">Search the neighbourhood</h1>
-        <p className="text-sm text-neutral-500">
-          Every book your neighbours have marked shareable.
-        </p>
-      </div>
+      <PageHero
+        src="/art/neighborhood-search-israel.webp"
+        title="Search the neighbourhood"
+        description="Every book your neighbours have marked shareable."
+      />
       <SearchResultsView results={results} />
     </div>
   );

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import RequestRow, { type RequestRowData } from "./RequestRow";
+import PageHero from "@/components/PageHero";
 
 type IncomingRow = {
   id: string;
@@ -72,7 +73,7 @@ export default async function RequestsPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-xl font-semibold">Requests</h1>
+      <PageHero src="/art/requests-israel.webp" title="Requests" />
 
       <section>
         <h2 className="mb-2 text-sm font-medium text-neutral-500">For your books</h2>

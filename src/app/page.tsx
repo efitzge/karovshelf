@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
@@ -35,6 +36,7 @@ export default async function HomePage() {
       href: "/upload",
       title: "Upload shelf photos",
       body: "Add photos of your bookshelves to be catalogued.",
+      art: "/art/home-upload.webp",
     },
     {
       href: "/library",
@@ -43,16 +45,19 @@ export default async function HomePage() {
         (needsReview ?? 0) > 0
           ? `${needsReview} book(s) waiting for your review`
           : "Review and manage your scanned books",
+      art: "/art/home-library.webp",
     },
     {
       href: "/search",
       title: "Search the neighbourhood",
       body: "Find a book a neighbour is willing to lend",
+      art: "/art/home-search.webp",
     },
     {
       href: "/requests",
       title: "Requests",
       body: `${pendingForMe ?? 0} pending for your books, ${mySent ?? 0} you're waiting on`,
+      art: "/art/home-requests.webp",
     },
   ];
 
@@ -64,10 +69,15 @@ export default async function HomePage() {
           <Link
             key={c.href}
             href={c.href}
-            className="rounded-lg border border-neutral-200 p-4 hover:border-neutral-400 dark:border-neutral-800 dark:hover:border-neutral-600"
+            className="flex items-center gap-4 rounded-lg border border-neutral-200 p-4 hover:border-neutral-400 dark:border-neutral-800 dark:hover:border-neutral-600"
           >
-            <div className="font-medium">{c.title}</div>
-            <div className="text-sm text-neutral-500">{c.body}</div>
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-art-surface">
+              <Image src={c.art} alt="" width={1254} height={1254} className="h-12 w-12 object-contain" />
+            </div>
+            <div>
+              <div className="font-medium">{c.title}</div>
+              <div className="text-sm text-neutral-500">{c.body}</div>
+            </div>
           </Link>
         ))}
       </div>

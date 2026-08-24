@@ -4,6 +4,7 @@ import { isHighConfidence } from "./confidence";
 import { ConfirmAllButton, ShareAllButton } from "./BulkActions";
 import ConfirmedLibraryView from "./ConfirmedLibraryView";
 import AddBookForm from "./AddBookForm";
+import PageHero from "@/components/PageHero";
 
 export default async function LibraryPage() {
   const supabase = await createClient();
@@ -32,12 +33,11 @@ export default async function LibraryPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-xl font-semibold">My Library</h1>
-        <p className="text-sm text-neutral-500">
-          Nothing here is visible to anyone else until you confirm it and mark it shareable.
-        </p>
-      </div>
+      <PageHero
+        src="/art/my-library-israel.webp"
+        title="My Library"
+        description="Nothing here is visible to anyone else until you confirm it and mark it shareable."
+      />
 
       <section>
         <h2 className="mb-2 text-sm font-medium text-neutral-500">

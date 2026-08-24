@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import UploadForm from "./UploadForm";
 import BatchThumbnails from "./BatchThumbnails";
+import PageHero from "@/components/PageHero";
 
 const STATUS_LABEL: Record<string, string> = {
   uploaded: "Queued - not yet scanned",
@@ -26,13 +27,11 @@ export default async function UploadPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-semibold">Upload shelf photos</h1>
-        <p className="text-sm text-neutral-500">
-          Photograph whole shelves from a step back rather than close up - the
-          scanner tiles each photo itself.
-        </p>
-      </div>
+      <PageHero
+        src="/art/upload-israel.webp"
+        title="Upload shelf photos"
+        description="Photograph whole shelves from a step back rather than close up - the scanner tiles each photo itself."
+      />
 
       <UploadForm userId={user.id} />
 
