@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import LibraryItemCard, { type LibraryItemWithBook } from "./LibraryItemCard";
 import { isHighConfidence } from "./confidence";
 import { ConfirmAllButton, ShareAllButton } from "./BulkActions";
+import ConfirmedLibraryView from "./ConfirmedLibraryView";
 
 export default async function LibraryPage() {
   const supabase = await createClient();
@@ -88,11 +89,7 @@ export default async function LibraryPage() {
         {confirmed.length === 0 ? (
           <p className="text-sm text-neutral-400">No confirmed books yet.</p>
         ) : (
-          <div className="flex flex-col gap-2">
-            {confirmed.map((item) => (
-              <LibraryItemCard key={item.id} item={item} />
-            ))}
-          </div>
+          <ConfirmedLibraryView items={confirmed} />
         )}
       </section>
     </div>
