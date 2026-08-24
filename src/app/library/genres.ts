@@ -1,30 +1,22 @@
 /**
  * Same fixed vocabulary the scan pipeline classifies into
- * (pipeline/enrich.py's SPECIFIC_GENRES/TOPICAL_GENRES + the two derived
- * fiction buckets) - keeping manually-picked genres on the same list keeps
+ * (pipeline/enrich.py's SPECIFIC_GENRES/TOPICAL_GENRES + the fiction-marker
+ * fallback) - keeping manually-picked genres on the same list keeps
  * `categorize()`'s Fiction/Non-fiction bucketing working for hand-entered
  * and corrected books too, not just scanned ones.
+ *
+ * Condensed to 10 (from an earlier 21-value version, 2026-08-24) - six
+ * fiction, four non-fiction.
  */
 export const GENRES = [
-  "Science Fiction",
-  "Fantasy",
-  "Mystery & Crime",
-  "Horror",
+  "Sci-Fi & Fantasy",
+  "Mystery, Thriller & Horror",
   "Romance",
-  "Graphic Novels",
-  "Drama",
-  "Historical Fiction",
-  "Literary Fiction",
-  "Children's",
-  "Young Adult",
-  "Poetry",
-  "Biography & Memoir",
-  "Cookery",
-  "Travel",
-  "History",
+  "Literary & Historical Fiction",
+  "Children's & Young Adult",
+  "Poetry, Drama & Graphic Novels",
+  "Biography & History",
   "Science & Nature",
   "Philosophy & Religion",
-  "Politics & Society",
-  "Business & Self-Help",
-  "Art & Music",
+  "Society, Business & Lifestyle",
 ];
