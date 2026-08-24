@@ -3,6 +3,7 @@ import LibraryItemCard, { type LibraryItemWithBook } from "./LibraryItemCard";
 import { isHighConfidence } from "./confidence";
 import { ConfirmAllButton, ShareAllButton } from "./BulkActions";
 import ConfirmedLibraryView from "./ConfirmedLibraryView";
+import AddBookForm from "./AddBookForm";
 
 export default async function LibraryPage() {
   const supabase = await createClient();
@@ -92,6 +93,8 @@ export default async function LibraryPage() {
           <ConfirmedLibraryView items={confirmed} />
         )}
       </section>
+
+      <AddBookForm />
     </div>
   );
 }

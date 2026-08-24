@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { Fragment, useMemo, useState, useTransition } from "react";
 import type { LibraryItemWithBook } from "./LibraryItemCard";
 import LibraryItemCard from "./LibraryItemCard";
 import { setShareable, deleteItem } from "./actions";
@@ -110,8 +110,6 @@ export default function ConfirmedLibraryView({ items }: { items: LibraryItemWith
     if (openId === id) setOpenId(null);
   }
 
-  const openItem = sorted.find((i) => i.id === openId) ?? null;
-
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
@@ -169,27 +167,33 @@ export default function ConfirmedLibraryView({ items }: { items: LibraryItemWith
       {view === "grid" ? (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(88px,1fr))] gap-3">
           {sorted.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setOpenId(openId === item.id ? null : item.id)}
-              className={`flex flex-col gap-1 rounded text-left ${openId === item.id ? "ring-2 ring-neutral-900 ring-offset-2 dark:ring-white dark:ring-offset-neutral-950" : ""}`}
-            >
-              {item.book?.cover_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={item.book.cover_url}
-                  alt=""
-                  className="aspect-[2/3] w-full rounded object-cover shadow-sm"
-                />
-              ) : (
-                <div className="flex aspect-[2/3] w-full items-center rounded bg-neutral-100 p-2 shadow-sm dark:bg-neutral-800">
-                  <span className="line-clamp-4 text-[11px] font-medium leading-tight">
-                    {item.book?.title}
-                  </span>
+            <Fragment key={item.id}>
+              <button
+                onClick={() => setOpenId(openId === item.id ? null : item.id)}
+                className={`flex flex-col gap-1 rounded text-left ${openId === item.id ? "ring-2 ring-neutral-900 ring-offset-2 dark:ring-white dark:ring-offset-neutral-950" : ""}`}
+              >
+                {item.book?.cover_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.book.cover_url}
+                    alt=""
+                    className="aspect-[2/3] w-full rounded object-cover shadow-sm"
+                  />
+                ) : (
+                  <div className="flex aspect-[2/3] w-full items-center rounded bg-neutral-100 p-2 shadow-sm dark:bg-neutral-800">
+                    <span className="line-clamp-4 text-[11px] font-medium leading-tight">
+                      {item.book?.title}
+                    </span>
+                  </div>
+                )}
+                <span className="truncate text-[11px] text-neutral-500">{item.book?.title}</span>
+              </button>
+              {openId === item.id && (
+                <div className="col-span-full">
+                  <LibraryItemCard item={item} />
                 </div>
               )}
-              <span className="truncate text-[11px] text-neutral-500">{item.book?.title}</span>
-            </button>
+            </Fragment>
           ))}
         </div>
       ) : (
@@ -213,56 +217,59 @@ export default function ConfirmedLibraryView({ items }: { items: LibraryItemWith
             </thead>
             <tbody>
               {sorted.map((item) => (
-                <tr key={item.id} className="border-b border-neutral-100 last:border-0 hover:bg-neutral-50 dark:border-neutral-900 dark:hover:bg-neutral-900">
-                  <td className="px-3 py-2">
-                    <div className="flex items-center gap-2">
-                      {item.book?.cover_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={item.book.cover_url} alt="" className="h-8 w-6 flex-none rounded-sm object-cover" />
-                      ) : (
-                        <div className="h-8 w-6 flex-none rounded-sm bg-neutral-100 dark:bg-neutral-800" />
-                      )}
-                      <span className="font-medium">{item.book?.title}</span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2 text-neutral-500">{(item.book?.authors ?? []).join(", ") || "—"}</td>
-                  <td className="px-3 py-2 text-neutral-500">{item.book?.genre || "—"}</td>
-                  <td className="px-3 py-2">
-                    <CategoryTag category={categoryOf(item)} />
-                  </td>
-                  <td className="px-3 py-2">
-                    <ShareSwitch item={item} />
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="flex justify-end gap-2 text-xs">
-                      <button
-                        onClick={() => setOpenId(openId === item.id ? null : item.id)}
-                        className="text-neutral-500 hover:underline"
-                      >
-                        Fix
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (confirm("Remove this book from your library?")) {
-                            deleteItem(item.id).then(() => handleRemoved(item.id));
-                          }
-                        }}
-                        className="text-red-600 hover:underline"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                <Fragment key={item.id}>
+                  <tr className="border-b border-neutral-100 last:border-0 hover:bg-neutral-50 dark:border-neutral-900 dark:hover:bg-neutral-900">
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        {item.book?.cover_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={item.book.cover_url} alt="" className="h-8 w-6 flex-none rounded-sm object-cover" />
+                        ) : (
+                          <div className="h-8 w-6 flex-none rounded-sm bg-neutral-100 dark:bg-neutral-800" />
+                        )}
+                        <span className="font-medium">{item.book?.title}</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 text-neutral-500">{(item.book?.authors ?? []).join(", ") || "—"}</td>
+                    <td className="px-3 py-2 text-neutral-500">{item.book?.genre || "—"}</td>
+                    <td className="px-3 py-2">
+                      <CategoryTag category={categoryOf(item)} />
+                    </td>
+                    <td className="px-3 py-2">
+                      <ShareSwitch item={item} />
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex justify-end gap-2 text-xs">
+                        <button
+                          onClick={() => setOpenId(openId === item.id ? null : item.id)}
+                          className="text-neutral-500 hover:underline"
+                        >
+                          Fix
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm("Remove this book from your library?")) {
+                              deleteItem(item.id).then(() => handleRemoved(item.id));
+                            }
+                          }}
+                          className="text-red-600 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  {openId === item.id && (
+                    <tr>
+                      <td colSpan={6} className="bg-neutral-50 p-3 dark:bg-neutral-900">
+                        <LibraryItemCard item={item} />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               ))}
             </tbody>
           </table>
-        </div>
-      )}
-
-      {openItem && (
-        <div className="mt-1">
-          <LibraryItemCard item={openItem} />
         </div>
       )}
     </div>

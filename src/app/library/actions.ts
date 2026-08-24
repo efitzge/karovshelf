@@ -94,3 +94,47 @@ export async function correctBook(
 
   revalidatePath("/library");
 }
+
+/**
+ * A book the owner types in by hand - never scanned, so there's no spine
+ * reading to attach. Goes straight in as its own private placeholder book
+ * (same reasoning as correctBook: never touches the shared cache) and an
+ * already-confirmed library_item, since typing it in yourself already is
+ * the confirmation.
+ */
+export async function addManualBook(fields: {
+  title: string;
+  authors: string[];
+  genre: string | null;
+  category: string | null;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not signed in.");
+
+  const { data: newBook, error: insertBookError } = await supabase
+    .from("books")
+    .insert({
+      title: fields.title,
+      authors: fields.authors,
+      genre: fields.genre,
+      category: fields.category,
+      lookup_key: "placeholder:" + crypto.randomUUID(),
+      is_placeholder: true,
+    })
+    .select("id")
+    .single();
+  if (insertBookError) throw insertBookError;
+
+  const { error: insertItemError } = await supabase.from("library_items").insert({
+    owner_id: user.id,
+    book_id: newBook.id,
+    confirmed: true,
+    shareable: false,
+  });
+  if (insertItemError) throw insertItemError;
+
+  revalidatePath("/library");
+}
