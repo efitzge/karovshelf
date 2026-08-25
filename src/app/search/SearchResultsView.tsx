@@ -2,6 +2,7 @@
 
 import { Fragment, useMemo, useState } from "react";
 import RequestButton from "./RequestButton";
+import { openLibraryUrl } from "@/lib/openLibrary";
 
 export type SearchResult = {
   id: string;
@@ -12,6 +13,8 @@ export type SearchResult = {
     genre: string | null;
     category: string | null;
     cover_url: string | null;
+    isbn13: string | null;
+    isbn10: string | null;
   } | null;
   owner: { id: string; display_name: string; neighbourhood: string } | null;
 };
@@ -67,6 +70,16 @@ function DetailPanel({ r }: { r: SearchResult }) {
           {r.owner?.display_name} · {r.owner?.neighbourhood}
           {r.condition ? ` · condition: ${r.condition}` : ""}
         </div>
+        {r.book && (
+          <a
+            href={openLibraryUrl(r.book)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 inline-block text-xs text-blue-600 underline dark:text-blue-400"
+          >
+            About this book
+          </a>
+        )}
         <div className="mt-2">
           <RequestButton libraryItemId={r.id} />
         </div>

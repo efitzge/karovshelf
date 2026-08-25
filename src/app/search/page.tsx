@@ -12,7 +12,7 @@ export default async function SearchPage() {
   const { data, error } = await supabase
     .from("library_items")
     .select(
-      "id, condition, book:books!inner(title, authors, genre, category, cover_url), owner:profiles!inner(id, display_name, neighbourhood)"
+      "id, condition, book:books!inner(title, authors, genre, category, cover_url, isbn13, isbn10), owner:profiles!inner(id, display_name, neighbourhood)"
     )
     .eq("shareable", true)
     .eq("confirmed", true)

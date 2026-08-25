@@ -5,6 +5,7 @@ import { confirmItem, setShareable, deleteItem, correctBook } from "./actions";
 import ViewShelfPhotos from "./ViewShelfPhotos";
 import { isHighConfidence } from "./confidence";
 import { GENRES } from "./genres";
+import { openLibraryUrl } from "@/lib/openLibrary";
 
 export type LibraryItemWithBook = {
   id: string;
@@ -21,6 +22,8 @@ export type LibraryItemWithBook = {
     category: string | null;
     cover_url: string | null;
     is_placeholder: boolean;
+    isbn13: string | null;
+    isbn10: string | null;
   } | null;
   scan_batch: { photo_paths: string[] } | null;
   source_photo_path: string | null;
@@ -79,6 +82,16 @@ export default function LibraryItemCard({ item }: { item: LibraryItemWithBook })
               </div>
             )}
             {showPhotoLink && <ViewShelfPhotos photoPaths={photoPaths} />}
+            {item.book && (
+              <a
+                href={openLibraryUrl(item.book)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 inline-block text-xs text-blue-600 underline dark:text-blue-400"
+              >
+                About this book
+              </a>
+            )}
           </div>
         </div>
       ) : (
