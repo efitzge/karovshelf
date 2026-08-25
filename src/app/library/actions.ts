@@ -69,28 +69,62 @@ export async function deleteItem(itemId: string) {
  */
 export async function correctBook(
   itemId: string,
-  fields: { title: string; authors: string[]; genre: string | null }
+  fields: { title: string; authors: string[]; genre: string | null; category: string | null }
 ) {
+  await bulkCorrectBooks([{ itemId, ...fields }]);
+}
+
+/**
+ * Same placeholder-row pattern as correctBook, applied to many library_items
+ * at once - e.g. selecting a shelf's worth of misclassified books and
+ * setting their genre or category in one action instead of one by one. Each
+ * item gets its own new books row (never a shared-cache UPDATE), keyed back
+ * up by a client-generated lookup_key since a multi-row INSERT's RETURNING
+ * order isn't something to rely on.
+ */
+export async function bulkCorrectBooks(
+  edits: {
+    itemId: string;
+    title: string;
+    authors: string[];
+    genre: string | null;
+    category: string | null;
+  }[]
+) {
+  if (edits.length === 0) return;
   const supabase = await createClient();
 
-  const { data: newBook, error: insertError } = await supabase
+  const keyed = edits.map((e) => ({ ...e, key: "placeholder:" + crypto.randomUUID() }));
+
+  const { data: newBooks, error: insertError } = await supabase
     .from("books")
-    .insert({
-      title: fields.title,
-      authors: fields.authors,
-      genre: fields.genre,
-      lookup_key: "placeholder:" + crypto.randomUUID(),
-      is_placeholder: true,
-    })
-    .select("id")
-    .single();
+    .insert(
+      keyed.map((e) => ({
+        title: e.title,
+        authors: e.authors,
+        genre: e.genre,
+        category: e.category,
+        lookup_key: e.key,
+        is_placeholder: true,
+      }))
+    )
+    .select("id, lookup_key");
   if (insertError) throw insertError;
 
-  const { error: updateError } = await supabase
-    .from("library_items")
-    .update({ book_id: newBook.id, confirmed: true })
-    .eq("id", itemId);
-  if (updateError) throw updateError;
+  const idByKey = new Map((newBooks ?? []).map((b) => [b.lookup_key, b.id]));
+
+  const results = await Promise.all(
+    keyed.map((e) => {
+      const bookId = idByKey.get(e.key);
+      if (!bookId) throw new Error(`Bulk insert did not return a book for item ${e.itemId}`);
+      return supabase
+        .from("library_items")
+        .update({ book_id: bookId, confirmed: true })
+        .eq("id", e.itemId);
+    })
+  );
+  const failed = results.find((r) => r.error);
+  if (failed?.error) throw failed.error;
 
   revalidatePath("/library");
 }

@@ -3,7 +3,8 @@
 import { Fragment, useMemo, useState, useTransition } from "react";
 import type { LibraryItemWithBook } from "./LibraryItemCard";
 import LibraryItemCard from "./LibraryItemCard";
-import { setShareable, deleteItem } from "./actions";
+import { setShareable, deleteItem, bulkCorrectBooks } from "./actions";
+import { GENRES } from "./genres";
 
 type SortKey = "title" | "author" | "genre";
 type CategoryFilter = "all" | "Fiction" | "Non-fiction" | "Judaica" | "none";
@@ -15,6 +16,8 @@ const CATEGORY_FILTERS: { value: CategoryFilter; label: string }[] = [
   { value: "Judaica", label: "Judaica" },
   { value: "none", label: "Uncategorised" },
 ];
+
+const CATEGORIES = ["", "Fiction", "Non-fiction", "Judaica"];
 
 function categoryOf(item: LibraryItemWithBook): CategoryFilter {
   return (item.book?.category as CategoryFilter) || "none";
@@ -58,6 +61,99 @@ function ShareSwitch({ item }: { item: LibraryItemWithBook }) {
   );
 }
 
+/** Bar shown once at least one book is selected - set a genre or category for
+ * all of them in one action instead of fixing each book individually. */
+function BulkEditBar({
+  items,
+  selectedIds,
+  onDone,
+  onClear,
+}: {
+  items: LibraryItemWithBook[];
+  selectedIds: Set<string>;
+  onDone: () => void;
+  onClear: () => void;
+}) {
+  const [bulkGenre, setBulkGenre] = useState("");
+  const [bulkCategory, setBulkCategory] = useState("");
+  const [pending, startTransition] = useTransition();
+
+  const selected = items.filter((i) => selectedIds.has(i.id));
+
+  function editsWith(overrides: { genre?: string | null; category?: string | null }) {
+    return selected.map((item) => ({
+      itemId: item.id,
+      title: item.book?.title ?? "",
+      authors: item.book?.authors ?? [],
+      genre: overrides.genre !== undefined ? overrides.genre : item.book?.genre ?? null,
+      category: overrides.category !== undefined ? overrides.category : item.book?.category ?? null,
+    }));
+  }
+
+  function applyGenre() {
+    startTransition(async () => {
+      await bulkCorrectBooks(editsWith({ genre: bulkGenre || null }));
+      onDone();
+    });
+  }
+
+  function applyCategory() {
+    startTransition(async () => {
+      await bulkCorrectBooks(editsWith({ category: bulkCategory || null }));
+      onDone();
+    });
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-neutral-300 bg-neutral-50 p-2 text-xs dark:border-neutral-700 dark:bg-neutral-900">
+      <span className="font-medium">{selectedIds.size} selected</span>
+
+      <select
+        value={bulkGenre}
+        onChange={(e) => setBulkGenre(e.target.value)}
+        className="rounded border border-neutral-300 px-2 py-1 dark:border-neutral-700 dark:bg-neutral-900"
+      >
+        <option value="">Uncategorised</option>
+        {GENRES.map((g) => (
+          <option key={g} value={g}>
+            {g}
+          </option>
+        ))}
+      </select>
+      <button
+        disabled={pending}
+        onClick={applyGenre}
+        className="rounded bg-neutral-900 px-2 py-1 text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
+      >
+        Set genre
+      </button>
+
+      <select
+        value={bulkCategory}
+        onChange={(e) => setBulkCategory(e.target.value)}
+        className="rounded border border-neutral-300 px-2 py-1 dark:border-neutral-700 dark:bg-neutral-900"
+      >
+        {CATEGORIES.map((c) => (
+          <option key={c} value={c}>
+            {c || "Uncategorised"}
+          </option>
+        ))}
+      </select>
+      <button
+        disabled={pending}
+        onClick={applyCategory}
+        className="rounded bg-neutral-900 px-2 py-1 text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
+      >
+        Set category
+      </button>
+
+      <button onClick={onClear} className="ml-auto text-neutral-500 hover:underline">
+        Clear selection
+      </button>
+    </div>
+  );
+}
+
 export default function ConfirmedLibraryView({ items }: { items: LibraryItemWithBook[] }) {
   const [view, setView] = useState<"grid" | "table">("grid");
   const [query, setQuery] = useState("");
@@ -66,6 +162,7 @@ export default function ConfirmedLibraryView({ items }: { items: LibraryItemWith
   const [sortDir, setSortDir] = useState<1 | -1>(1);
   const [openId, setOpenId] = useState<string | null>(null);
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const visible = items.filter((i) => !removedIds.has(i.id));
 
@@ -108,6 +205,27 @@ export default function ConfirmedLibraryView({ items }: { items: LibraryItemWith
   function handleRemoved(id: string) {
     setRemovedIds((prev) => new Set(prev).add(id));
     if (openId === id) setOpenId(null);
+    setSelectedIds((prev) => {
+      if (!prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }
+
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  const allVisibleSelected = sorted.length > 0 && sorted.every((i) => selectedIds.has(i.id));
+
+  function toggleSelectAll() {
+    setSelectedIds(allVisibleSelected ? new Set() : new Set(sorted.map((i) => i.id)));
   }
 
   return (
@@ -159,35 +277,58 @@ export default function ConfirmedLibraryView({ items }: { items: LibraryItemWith
           ))}
         </div>
 
+        <label className="flex items-center gap-1 text-xs text-neutral-500">
+          <input type="checkbox" checked={allVisibleSelected} onChange={toggleSelectAll} />
+          Select all
+        </label>
+
         <span className="ml-auto text-xs text-neutral-400">
           {sorted.length === visible.length ? `${visible.length} books` : `${sorted.length} of ${visible.length} books`}
         </span>
       </div>
 
+      {selectedIds.size > 0 && (
+        <BulkEditBar
+          items={sorted}
+          selectedIds={selectedIds}
+          onDone={() => setSelectedIds(new Set())}
+          onClear={() => setSelectedIds(new Set())}
+        />
+      )}
+
       {view === "grid" ? (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(88px,1fr))] gap-3">
           {sorted.map((item) => (
             <Fragment key={item.id}>
-              <button
-                onClick={() => setOpenId(openId === item.id ? null : item.id)}
-                className={`flex flex-col gap-1 rounded text-left ${openId === item.id ? "ring-2 ring-neutral-900 ring-offset-2 dark:ring-white dark:ring-offset-neutral-950" : ""}`}
-              >
-                {item.book?.cover_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={item.book.cover_url}
-                    alt=""
-                    className="aspect-[2/3] w-full rounded object-cover shadow-sm"
-                  />
-                ) : (
-                  <div className="flex aspect-[2/3] w-full items-center rounded bg-neutral-100 p-2 shadow-sm dark:bg-neutral-800">
-                    <span className="line-clamp-4 text-[11px] font-medium leading-tight">
-                      {item.book?.title}
-                    </span>
-                  </div>
-                )}
-                <span className="truncate text-[11px] text-neutral-500">{item.book?.title}</span>
-              </button>
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.has(item.id)}
+                  onChange={() => toggleSelected(item.id)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute left-1 top-1 z-10 h-4 w-4"
+                />
+                <button
+                  onClick={() => setOpenId(openId === item.id ? null : item.id)}
+                  className={`flex w-full flex-col gap-1 rounded text-left ${openId === item.id ? "ring-2 ring-neutral-900 ring-offset-2 dark:ring-white dark:ring-offset-neutral-950" : ""}`}
+                >
+                  {item.book?.cover_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={item.book.cover_url}
+                      alt=""
+                      className="aspect-[2/3] w-full rounded object-cover shadow-sm"
+                    />
+                  ) : (
+                    <div className="flex aspect-[2/3] w-full items-center rounded bg-neutral-100 p-2 shadow-sm dark:bg-neutral-800">
+                      <span className="line-clamp-4 text-[11px] font-medium leading-tight">
+                        {item.book?.title}
+                      </span>
+                    </div>
+                  )}
+                  <span className="truncate text-[11px] text-neutral-500">{item.book?.title}</span>
+                </button>
+              </div>
               {openId === item.id && (
                 <div className="col-span-full">
                   <LibraryItemCard item={item} />
@@ -201,6 +342,9 @@ export default function ConfirmedLibraryView({ items }: { items: LibraryItemWith
           <table className="w-full min-w-[560px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-neutral-200 bg-neutral-50 text-left text-xs text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900">
+                <th className="px-3 py-2">
+                  <input type="checkbox" checked={allVisibleSelected} onChange={toggleSelectAll} />
+                </th>
                 {(["title", "author", "genre"] as SortKey[]).map((key) => (
                   <th
                     key={key}
@@ -219,6 +363,13 @@ export default function ConfirmedLibraryView({ items }: { items: LibraryItemWith
               {sorted.map((item) => (
                 <Fragment key={item.id}>
                   <tr className="border-b border-neutral-100 last:border-0 hover:bg-neutral-50 dark:border-neutral-900 dark:hover:bg-neutral-900">
+                    <td className="px-3 py-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(item.id)}
+                        onChange={() => toggleSelected(item.id)}
+                      />
+                    </td>
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
                         {item.book?.cover_url ? (
@@ -261,7 +412,7 @@ export default function ConfirmedLibraryView({ items }: { items: LibraryItemWith
                   </tr>
                   {openId === item.id && (
                     <tr>
-                      <td colSpan={6} className="bg-neutral-50 p-3 dark:bg-neutral-900">
+                      <td colSpan={7} className="bg-neutral-50 p-3 dark:bg-neutral-900">
                         <LibraryItemCard item={item} />
                       </td>
                     </tr>

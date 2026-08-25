@@ -138,6 +138,7 @@ export default function LibraryItemCard({ item }: { item: LibraryItemWithBook })
                     title,
                     authors: authors.split(",").map((a) => a.trim()).filter(Boolean),
                     genre: genre.trim() || null,
+                    category: item.book?.category ?? null,
                   });
                   setEditing(false);
                 })
