@@ -71,7 +71,7 @@ export default function LibraryItemCard({ item }: { item: LibraryItemWithBook })
               {item.book?.genre ? ` · ${item.book.genre}` : ""}
               {item.book?.category ? ` · ${item.book.category}` : ""}
             </div>
-            {item.scan_spine_text && (
+            {item.scan_spine_text && !isHighConfidence(item) && (
               <div className="mt-1 truncate text-xs text-neutral-400">
                 Spine: &ldquo;{item.scan_spine_text}&rdquo;
               </div>
