@@ -304,6 +304,14 @@ export type Database = {
           title: string
         }[]
       }
+      update_profile_and_contact: {
+        Args: {
+          p_contact_note: string
+          p_display_name: string
+          p_neighbourhood: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

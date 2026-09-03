@@ -18,18 +18,13 @@ export async function updateProfile(_prevState: string | null, formData: FormDat
     return "Name and neighbourhood are required.";
   }
 
-  const { error } = await supabase
-    .from("profiles")
-    .update({ display_name: displayName, neighbourhood })
-    .eq("id", user.id);
+  const { error } = await supabase.rpc("update_profile_and_contact", {
+    p_display_name: displayName,
+    p_neighbourhood: neighbourhood,
+    p_contact_note: contactNote,
+  });
 
   if (error) return error.message;
-
-  const { error: contactError } = await supabase
-    .from("profile_contacts")
-    .upsert({ profile_id: user.id, contact_note: contactNote || null });
-
-  if (contactError) return contactError.message;
 
   revalidatePath("/profile");
   revalidatePath("/");
