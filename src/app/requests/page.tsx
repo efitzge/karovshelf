@@ -7,7 +7,10 @@ type IncomingRow = {
   status: string;
   message: string | null;
   created_at: string;
-  requester: { display_name: string; contact_note: string | null } | null;
+  requester: {
+    display_name: string;
+    contact: { contact_note: string | null } | null;
+  } | null;
   library_item: { owner_id: string; book: { title: string } | null } | null;
 };
 
@@ -18,7 +21,10 @@ type OutgoingRow = {
   created_at: string;
   library_item: {
     book: { title: string } | null;
-    owner: { display_name: string; contact_note: string | null } | null;
+    owner: {
+      display_name: string;
+      contact: { contact_note: string | null } | null;
+    } | null;
   } | null;
 };
 
@@ -34,14 +40,14 @@ export default async function RequestsPage() {
       supabase
         .from("book_requests")
         .select(
-          "id, status, message, created_at, requester:profiles!inner(display_name, contact_note), library_item:library_items!inner(owner_id, book:books(title))"
+          "id, status, message, created_at, requester:profiles!inner(display_name, contact:profile_contacts(contact_note)), library_item:library_items!inner(owner_id, book:books(title))"
         )
         .eq("library_item.owner_id", user.id)
         .order("created_at", { ascending: false }),
       supabase
         .from("book_requests")
         .select(
-          "id, status, message, created_at, library_item:library_items!inner(book:books(title), owner:profiles!inner(display_name, contact_note))"
+          "id, status, message, created_at, library_item:library_items!inner(book:books(title), owner:profiles!inner(display_name, contact:profile_contacts(contact_note)))"
         )
         .eq("requester_id", user.id)
         .order("created_at", { ascending: false }),
@@ -55,7 +61,7 @@ export default async function RequestsPage() {
       created_at: r.created_at,
       bookTitle: r.library_item?.book?.title ?? "(unknown book)",
       otherPartyName: r.requester?.display_name ?? "(unknown)",
-      otherPartyContact: r.requester?.contact_note,
+      otherPartyContact: r.requester?.contact?.contact_note,
     })
   );
 
@@ -67,7 +73,7 @@ export default async function RequestsPage() {
       created_at: r.created_at,
       bookTitle: r.library_item?.book?.title ?? "(unknown book)",
       otherPartyName: r.library_item?.owner?.display_name ?? "(unknown)",
-      otherPartyContact: r.library_item?.owner?.contact_note,
+      otherPartyContact: r.library_item?.owner?.contact?.contact_note,
     })
   );
 

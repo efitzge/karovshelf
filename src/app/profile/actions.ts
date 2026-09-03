@@ -20,14 +20,16 @@ export async function updateProfile(_prevState: string | null, formData: FormDat
 
   const { error } = await supabase
     .from("profiles")
-    .update({
-      display_name: displayName,
-      neighbourhood,
-      contact_note: contactNote || null,
-    })
+    .update({ display_name: displayName, neighbourhood })
     .eq("id", user.id);
 
   if (error) return error.message;
+
+  const { error: contactError } = await supabase
+    .from("profile_contacts")
+    .upsert({ profile_id: user.id, contact_note: contactNote || null });
+
+  if (contactError) return contactError.message;
 
   revalidatePath("/profile");
   revalidatePath("/");

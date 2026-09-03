@@ -8,11 +8,10 @@ export default async function ProfilePage() {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("display_name, neighbourhood, contact_note")
-    .eq("id", user.id)
-    .single();
+  const [{ data: profile }, { data: contact }] = await Promise.all([
+    supabase.from("profiles").select("display_name, neighbourhood").eq("id", user.id).single(),
+    supabase.from("profile_contacts").select("contact_note").eq("profile_id", user.id).maybeSingle(),
+  ]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -20,7 +19,7 @@ export default async function ProfilePage() {
       <ProfileForm
         displayName={profile?.display_name ?? ""}
         neighbourhood={profile?.neighbourhood ?? ""}
-        contactNote={profile?.contact_note ?? null}
+        contactNote={contact?.contact_note ?? null}
       />
     </div>
   );
