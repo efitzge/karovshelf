@@ -3,6 +3,7 @@
 import { Fragment, useMemo, useState } from "react";
 import RequestButton from "./RequestButton";
 import { openLibraryUrl } from "@/lib/openLibrary";
+import BookCover from "@/components/BookCover";
 
 export type SearchResult = {
   id: string;
@@ -53,12 +54,7 @@ function CategoryTag({ category }: { category: CategoryFilter }) {
 function DetailPanel({ r }: { r: SearchResult }) {
   return (
     <div className="flex items-start gap-3 rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
-      {r.book?.cover_url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={r.book.cover_url} alt="" className="h-24 w-16 flex-none rounded object-cover" />
-      ) : (
-        <div className="h-24 w-16 flex-none rounded bg-neutral-100 dark:bg-neutral-800" />
-      )}
+      <BookCover book={r.book} variant="icon" className="h-24 w-16 rounded" />
       <div className="min-w-0 flex-1">
         <div className="font-medium">{r.book?.title}</div>
         <div className="text-sm text-neutral-500">{(r.book?.authors ?? []).join(", ") || "Unknown author"}</div>
@@ -198,14 +194,7 @@ export default function SearchResultsView({ results }: { results: SearchResult[]
                 onClick={() => setOpenId(openId === r.id ? null : r.id)}
                 className={`flex flex-col gap-1 rounded text-left ${openId === r.id ? "ring-2 ring-neutral-900 ring-offset-2 dark:ring-white dark:ring-offset-neutral-950" : ""}`}
               >
-                {r.book?.cover_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={r.book.cover_url} alt="" className="aspect-[2/3] w-full rounded object-cover shadow-sm" />
-                ) : (
-                  <div className="flex aspect-[2/3] w-full items-center rounded bg-neutral-100 p-2 shadow-sm dark:bg-neutral-800">
-                    <span className="line-clamp-4 text-[11px] font-medium leading-tight">{r.book?.title}</span>
-                  </div>
-                )}
+                <BookCover book={r.book} variant="tile" className="aspect-[2/3] w-full" />
                 <span className="truncate text-[11px] text-neutral-500">{r.book?.title}</span>
               </button>
               {openId === r.id && (
@@ -237,12 +226,7 @@ export default function SearchResultsView({ results }: { results: SearchResult[]
                   <tr className="border-b border-neutral-100 last:border-0 hover:bg-neutral-50 dark:border-neutral-900 dark:hover:bg-neutral-900">
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
-                        {r.book?.cover_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={r.book.cover_url} alt="" className="h-8 w-6 flex-none rounded-sm object-cover" />
-                        ) : (
-                          <div className="h-8 w-6 flex-none rounded-sm bg-neutral-100 dark:bg-neutral-800" />
-                        )}
+                        <BookCover book={r.book} variant="icon" className="h-8 w-6 rounded-sm" />
                         <span className="font-medium">{r.book?.title}</span>
                       </div>
                     </td>

@@ -6,6 +6,7 @@ import ViewShelfPhotos from "./ViewShelfPhotos";
 import { isHighConfidence } from "./confidence";
 import { GENRES } from "./genres";
 import { openLibraryUrl } from "@/lib/openLibrary";
+import BookCover from "@/components/BookCover";
 
 export type LibraryItemWithBook = {
   id: string;
@@ -58,12 +59,7 @@ export default function LibraryItemCard({ item }: { item: LibraryItemWithBook })
     <div className="rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
       {!editing ? (
         <div className="flex items-start gap-3">
-          {item.book?.cover_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={item.book.cover_url} alt="" className="h-16 w-11 rounded object-cover" />
-          ) : (
-            <div className="h-16 w-11 flex-none rounded bg-neutral-100 dark:bg-neutral-800" />
-          )}
+          <BookCover book={item.book} variant="icon" className="h-16 w-11 rounded" />
           <div className="min-w-0 flex-1">
             <div className="truncate font-medium">{item.book?.title || "(untitled)"}</div>
             <div className="truncate text-sm text-neutral-500">

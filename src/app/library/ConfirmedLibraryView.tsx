@@ -5,6 +5,7 @@ import type { LibraryItemWithBook } from "./LibraryItemCard";
 import LibraryItemCard from "./LibraryItemCard";
 import { setShareable, deleteItem, bulkCorrectBooks } from "./actions";
 import { GENRES } from "./genres";
+import BookCover from "@/components/BookCover";
 
 type SortKey = "title" | "author" | "genre";
 type CategoryFilter = "all" | "Fiction" | "Non-fiction" | "Judaica" | "none";
@@ -312,20 +313,7 @@ export default function ConfirmedLibraryView({ items }: { items: LibraryItemWith
                   onClick={() => setOpenId(openId === item.id ? null : item.id)}
                   className={`flex w-full flex-col gap-1 rounded text-left ${openId === item.id ? "ring-2 ring-neutral-900 ring-offset-2 dark:ring-white dark:ring-offset-neutral-950" : ""}`}
                 >
-                  {item.book?.cover_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={item.book.cover_url}
-                      alt=""
-                      className="aspect-[2/3] w-full rounded object-cover shadow-sm"
-                    />
-                  ) : (
-                    <div className="flex aspect-[2/3] w-full items-center rounded bg-neutral-100 p-2 shadow-sm dark:bg-neutral-800">
-                      <span className="line-clamp-4 text-[11px] font-medium leading-tight">
-                        {item.book?.title}
-                      </span>
-                    </div>
-                  )}
+                  <BookCover book={item.book} variant="tile" className="aspect-[2/3] w-full" />
                   <span className="truncate text-[11px] text-neutral-500">{item.book?.title}</span>
                 </button>
               </div>
@@ -372,12 +360,7 @@ export default function ConfirmedLibraryView({ items }: { items: LibraryItemWith
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2">
-                        {item.book?.cover_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={item.book.cover_url} alt="" className="h-8 w-6 flex-none rounded-sm object-cover" />
-                        ) : (
-                          <div className="h-8 w-6 flex-none rounded-sm bg-neutral-100 dark:bg-neutral-800" />
-                        )}
+                        <BookCover book={item.book} variant="icon" className="h-8 w-6 rounded-sm" />
                         <span className="font-medium">{item.book?.title}</span>
                       </div>
                     </td>
