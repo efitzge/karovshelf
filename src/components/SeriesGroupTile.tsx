@@ -31,7 +31,7 @@ export default function SeriesGroupTile({
         </span>
       </div>
       <span className="truncate text-[11px] text-neutral-500">
-        {seriesTitle} · {volumeLabel}
+        {volumeLabel ? `${seriesTitle} · ${volumeLabel}` : seriesTitle}
       </span>
     </button>
   );

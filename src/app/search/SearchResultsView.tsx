@@ -64,7 +64,7 @@ function GroupDetailPanel({ seriesTitle, items }: { seriesTitle: string; items: 
         <BookCover book={first.book} variant="icon" className="h-24 w-16 rounded" />
         <div className="min-w-0 flex-1">
           <div className="font-medium">
-            {seriesTitle} · {volumeRangeLabel(items)}
+            {volumeRangeLabel(items) ? `${seriesTitle} · ${volumeRangeLabel(items)}` : seriesTitle}
           </div>
           <div className="text-sm text-neutral-500">{(first.book?.authors ?? []).join(", ") || "Unknown author"}</div>
           <div className="mt-1 text-xs text-neutral-400">
@@ -78,7 +78,8 @@ function GroupDetailPanel({ seriesTitle, items }: { seriesTitle: string; items: 
       <ul className="flex flex-col gap-1 border-t border-neutral-100 pt-2 text-xs text-neutral-500 dark:border-neutral-900">
         {items.map((i) => (
           <li key={i.id}>
-            Vol. {i.book?.series_volume} — {i.book?.title}
+            {i.book?.series_volume != null ? `Vol. ${i.book.series_volume} — ` : ""}
+            {i.book?.title}
           </li>
         ))}
       </ul>

@@ -47,7 +47,18 @@ export function groupBySeries<T extends { book: SeriesBook }>(
   const grouped = new Set<T>();
   for (const [key, bucket] of byKey) {
     if (bucket.length < minGroupSize) continue;
-    bucket.sort((a, b) => (a.book?.series_volume ?? 0) - (b.book?.series_volume ?? 0));
+    // Numbered volumes first, in order (e.g. detect_series() found "Vol.
+    // 11"/"Vol. 13" among 14 real "A Daily Dose of Torah" books) - the rest
+    // share the series but carry no number (cluster_series_by_prefix()
+    // only had a title prefix to go on), so they sort alphabetically after.
+    bucket.sort((a, b) => {
+      const av = a.book?.series_volume;
+      const bv = b.book?.series_volume;
+      if (av != null && bv != null) return av - bv;
+      if (av != null) return -1;
+      if (bv != null) return 1;
+      return 0;
+    });
     // Display title: whichever exact string is most common in the group,
     // so "The Sages" (3 items) wins over a lone "Sages" (1 item).
     const counts = new Map<string, number>();
