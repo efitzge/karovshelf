@@ -1,17 +1,30 @@
-# KarovShelf
+# KarovShelf web app
 
-Neighbourhood book-sharing web app: upload shelf photos, review the AI-catalogued
-drafts, search neighbours' shareable libraries, and request to borrow.
+Live at [karovshelf.vercel.app](https://karovshelf.vercel.app).
+
+Neighbourhood book-sharing web app for Modiin: users upload shelf photos,
+review drafted catalogues, choose which books to share, search neighbours'
+shareable libraries, and request to borrow.
 
 Next.js 15 (App Router) + TypeScript + Tailwind + Supabase (Auth, Postgres, Storage).
 No signup flow by design - accounts are created by the site owner via the Supabase
 dashboard, and sign in with email + a short PIN (Supabase password auth).
 
-Scanning itself (photos -> catalogued books) happens outside this repo, in the
-separate Python pipeline. Uploading a batch here only queues it
-(`scan_batches.status = 'uploaded'`) - the site owner runs the scanner on their
-own machine when convenient, and the resulting drafts show up in **My Library**
-for review.
+Scanning itself happens outside this repo, in `E:\karovshelf`. Uploading a
+batch here creates `scan_batches.status = 'uploaded'`; the current operating
+default is for the site owner to process that batch manually with Claude via
+the Python project's `manual_batch.py` workflow. The Ollama worker remains a
+fallback and benchmark option. Resulting drafts appear in **My Library** for
+the owner to review and confirm before any book becomes searchable.
+
+Implemented features include multi-photo upload/history, private photo access,
+library review/correction/deletion/shareability controls, Grid/Table views,
+bulk confirmation and genre/category correction, neighbourhood search, and the
+request → accept/decline → contact-reveal borrowing handoff.
+
+For the full operating history, data model, and current known issues, see the
+pipeline documentation: `E:\karovshelf\PROJECT_SUMMARY.md` and
+`E:\karovshelf\MVP_WORKFLOW.md`.
 
 ## Local setup
 

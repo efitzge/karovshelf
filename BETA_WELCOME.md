@@ -10,10 +10,11 @@ Welcome to KarovShelf! 📚
 
 A few quick things before you start:
 
-**How it works.** Log in with the email + PIN I gave you, then go to
-**Upload** and take a few photos of your bookshelves — step back and get the
-*whole* shelf in frame rather than close-ups, with decent lighting. That's
-what lets the scanner actually read the spines.
+**How it works.** Go to **https://karovshelf.vercel.app** and log in with
+the email + PIN I gave you, then go to **Upload** and take a few photos of
+your bookshelves — step back and get the *whole* shelf in frame rather than
+close-ups, with decent lighting. That's what lets the scanner actually read
+the spines.
 
 **What happens next.** I read through each batch by hand (with AI helping),
 so it's not instant — usually within a day or two, sometimes longer if I'm
