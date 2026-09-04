@@ -16,6 +16,20 @@ your bookshelves — step back and get the *whole* shelf in frame rather than
 close-ups, with decent lighting. That's what lets the scanner actually read
 the spines.
 
+A few tips that make a real difference to how well it reads:
+- **Straighten the shelf first.** Books can lean any which way (upright,
+  sideways, stacked flat) — that's fine — just make sure every spine is
+  actually visible and not hidden behind another book.
+- **Take the photo in decent light and hold the camera steady** so the
+  spine text isn't blurry — that's the single biggest thing that trips up
+  the scanner.
+- **Take the photo with your phone's normal camera first, then crop it down
+  to just the shelf of books** before uploading (cut out the wall, floor,
+  other furniture) — a tighter, book-only photo reads much better than a
+  wide shot with a lot of empty space around the shelf.
+- Once your photos are ready, **upload them all together as one batch**
+  rather than one at a time.
+
 **What happens next.** I read through each batch by hand (with AI helping),
 so it's not instant — usually within a day or two, sometimes longer if I'm
 swamped. You'll see your batch's status on the Upload page while you wait.
@@ -51,3 +65,10 @@ process). Let me know if something looks wrong and I'll take a look.
   a live test (repetition-loop false-positive on bulk-duplicate shelves;
   low catalogue match rate on specialty editions — see `PROJECT_SUMMARY.md`
   §10). If those get fixed, this caveat can soften or drop.
+- **The photo-taking tips (straighten/light/crop/batch-upload)** were added
+  2026-09-04 from Elliot's own hands-on experience processing real batches
+  manually via Claude, not guessed - a tightly cropped, well-lit, in-focus
+  photo genuinely reads better, and the stylized-cover mystery book that
+  came up more than once during real processing (never confidently
+  transcribable) is exactly the kind of case a clearer photo would help
+  with.
