@@ -6,6 +6,8 @@ import LibraryItemCard from "./LibraryItemCard";
 import { setShareable, deleteItem, bulkCorrectBooks } from "./actions";
 import { GENRES } from "./genres";
 import BookCover from "@/components/BookCover";
+import SeriesGroupTile from "@/components/SeriesGroupTile";
+import { groupBySeries, mergeForDisplay, volumeRangeLabel } from "@/lib/seriesGrouping";
 
 type SortKey = "title" | "author" | "genre";
 type CategoryFilter = "all" | "Fiction" | "Non-fiction" | "Judaica" | "none";
@@ -223,6 +225,9 @@ export default function ConfirmedLibraryView({ items }: { items: LibraryItemWith
     });
   }
 
+  const { groups: seriesGroups } = useMemo(() => groupBySeries(sorted), [sorted]);
+  const displayEntries = useMemo(() => mergeForDisplay(sorted, seriesGroups), [sorted, seriesGroups]);
+
   const allVisibleSelected = sorted.length > 0 && sorted.every((i) => selectedIds.has(i.id));
 
   function toggleSelectAll() {
@@ -299,31 +304,55 @@ export default function ConfirmedLibraryView({ items }: { items: LibraryItemWith
 
       {view === "grid" ? (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(88px,1fr))] gap-3">
-          {sorted.map((item) => (
-            <Fragment key={item.id}>
-              <div className="relative">
-                <input
-                  type="checkbox"
-                  checked={selectedIds.has(item.id)}
-                  onChange={() => toggleSelected(item.id)}
-                  onClick={(e) => e.stopPropagation()}
-                  className="absolute left-1 top-1 z-10 h-4 w-4"
-                />
-                <button
-                  onClick={() => setOpenId(openId === item.id ? null : item.id)}
-                  className={`flex w-full flex-col gap-1 rounded text-left ${openId === item.id ? "ring-2 ring-neutral-900 ring-offset-2 dark:ring-white dark:ring-offset-neutral-950" : ""}`}
-                >
-                  <BookCover book={item.book} variant="tile" className="aspect-[2/3] w-full" />
-                  <span className="truncate text-[11px] text-neutral-500">{item.book?.title}</span>
-                </button>
-              </div>
-              {openId === item.id && (
-                <div className="col-span-full">
-                  <LibraryItemCard item={item} />
+          {displayEntries.map((entry) =>
+            entry.type === "single" ? (
+              <Fragment key={entry.item.id}>
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(entry.item.id)}
+                    onChange={() => toggleSelected(entry.item.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute left-1 top-1 z-10 h-4 w-4"
+                  />
+                  <button
+                    onClick={() => setOpenId(openId === entry.item.id ? null : entry.item.id)}
+                    className={`flex w-full flex-col gap-1 rounded text-left ${openId === entry.item.id ? "ring-2 ring-neutral-900 ring-offset-2 dark:ring-white dark:ring-offset-neutral-950" : ""}`}
+                  >
+                    <BookCover book={entry.item.book} variant="tile" className="aspect-[2/3] w-full" />
+                    <span className="truncate text-[11px] text-neutral-500">{entry.item.book?.title}</span>
+                  </button>
                 </div>
-              )}
-            </Fragment>
-          ))}
+                {openId === entry.item.id && (
+                  <div className="col-span-full">
+                    <LibraryItemCard item={entry.item} />
+                  </div>
+                )}
+              </Fragment>
+            ) : (
+              <Fragment key={entry.group.key}>
+                <SeriesGroupTile
+                  seriesTitle={entry.group.seriesTitle}
+                  volumeLabel={volumeRangeLabel(entry.group.items)}
+                  count={entry.group.items.length}
+                  coverBook={entry.group.items[0].book}
+                  open={openId === entry.group.key}
+                  onClick={() => setOpenId(openId === entry.group.key ? null : entry.group.key)}
+                />
+                {openId === entry.group.key && (
+                  <div className="col-span-full flex flex-col gap-2">
+                    <p className="text-xs text-neutral-400">
+                      {entry.group.items.length} volumes shown as one set - each still individually
+                      correctable below.
+                    </p>
+                    {entry.group.items.map((item) => (
+                      <LibraryItemCard key={item.id} item={item} />
+                    ))}
+                  </div>
+                )}
+              </Fragment>
+            )
+          )}
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800">

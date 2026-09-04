@@ -18,6 +18,7 @@ export type RequestRowData = {
   bookTitle: string;
   otherPartyName: string;
   otherPartyContact?: string | null;
+  groupKey: string | null;
 };
 
 export default function RequestRow({

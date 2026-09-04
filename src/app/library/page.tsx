@@ -16,7 +16,7 @@ export default async function LibraryPage() {
   const { data, error } = await supabase
     .from("library_items")
     .select(
-      "id, shareable, confirmed, scan_spine_text, scan_legibility, condition, source_photo_path, book:books(id, title, authors, genre, category, cover_url, is_placeholder, isbn13, isbn10), scan_batch:scan_batches(photo_paths)"
+      "id, shareable, confirmed, scan_spine_text, scan_legibility, condition, source_photo_path, book:books(id, title, authors, genre, category, cover_url, is_placeholder, isbn13, isbn10, series_title, series_volume), scan_batch:scan_batches(photo_paths)"
     )
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false });

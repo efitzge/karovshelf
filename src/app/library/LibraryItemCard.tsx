@@ -25,6 +25,8 @@ export type LibraryItemWithBook = {
     is_placeholder: boolean;
     isbn13: string | null;
     isbn10: string | null;
+    series_title: string | null;
+    series_volume: number | null;
   } | null;
   scan_batch: { photo_paths: string[] } | null;
   source_photo_path: string | null;

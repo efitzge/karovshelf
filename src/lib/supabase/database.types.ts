@@ -17,6 +17,7 @@ export type Database = {
       book_requests: {
         Row: {
           created_at: string
+          group_key: string | null
           id: string
           library_item_id: string
           message: string | null
@@ -26,6 +27,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          group_key?: string | null
           id?: string
           library_item_id: string
           message?: string | null
@@ -35,6 +37,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          group_key?: string | null
           id?: string
           library_item_id?: string
           message?: string | null
@@ -76,6 +79,8 @@ export type Database = {
           lookup_key: string
           match_score: number | null
           match_source: string | null
+          series_title: string | null
+          series_volume: number | null
           subjects: string[]
           subtitle: string | null
           title: string
@@ -96,6 +101,8 @@ export type Database = {
           lookup_key: string
           match_score?: number | null
           match_source?: string | null
+          series_title?: string | null
+          series_volume?: number | null
           subjects?: string[]
           subtitle?: string | null
           title: string
@@ -116,6 +123,8 @@ export type Database = {
           lookup_key?: string
           match_score?: number | null
           match_source?: string | null
+          series_title?: string | null
+          series_volume?: number | null
           subjects?: string[]
           subtitle?: string | null
           title?: string

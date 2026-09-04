@@ -1,12 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import RequestRow, { type RequestRowData } from "./RequestRow";
+import RequestGroupRow from "./RequestGroupRow";
 import PageHero from "@/components/PageHero";
+import { groupRequestRows } from "./groupRequests";
 
 type IncomingRow = {
   id: string;
   status: string;
   message: string | null;
   created_at: string;
+  group_key: string | null;
   requester: {
     display_name: string;
     contact: { contact_note: string | null } | null;
@@ -19,6 +22,7 @@ type OutgoingRow = {
   status: string;
   message: string | null;
   created_at: string;
+  group_key: string | null;
   library_item: {
     book: { title: string } | null;
     owner: {
@@ -40,14 +44,14 @@ export default async function RequestsPage() {
       supabase
         .from("book_requests")
         .select(
-          "id, status, message, created_at, requester:profiles!inner(display_name, contact:profile_contacts(contact_note)), library_item:library_items!inner(owner_id, book:books(title))"
+          "id, status, message, created_at, group_key, requester:profiles!inner(display_name, contact:profile_contacts(contact_note)), library_item:library_items!inner(owner_id, book:books(title))"
         )
         .eq("library_item.owner_id", user.id)
         .order("created_at", { ascending: false }),
       supabase
         .from("book_requests")
         .select(
-          "id, status, message, created_at, library_item:library_items!inner(book:books(title), owner:profiles!inner(display_name, contact:profile_contacts(contact_note)))"
+          "id, status, message, created_at, group_key, library_item:library_items!inner(book:books(title), owner:profiles!inner(display_name, contact:profile_contacts(contact_note)))"
         )
         .eq("requester_id", user.id)
         .order("created_at", { ascending: false }),
@@ -62,6 +66,7 @@ export default async function RequestsPage() {
       bookTitle: r.library_item?.book?.title ?? "(unknown book)",
       otherPartyName: r.requester?.display_name ?? "(unknown)",
       otherPartyContact: r.requester?.contact?.contact_note,
+      groupKey: r.group_key,
     })
   );
 
@@ -74,6 +79,7 @@ export default async function RequestsPage() {
       bookTitle: r.library_item?.book?.title ?? "(unknown book)",
       otherPartyName: r.library_item?.owner?.display_name ?? "(unknown)",
       otherPartyContact: r.library_item?.owner?.contact?.contact_note,
+      groupKey: r.group_key,
     })
   );
 
@@ -88,9 +94,13 @@ export default async function RequestsPage() {
           <p className="text-sm text-neutral-400">No one has requested your books yet.</p>
         ) : (
           <div className="flex flex-col gap-2">
-            {incoming.map((r) => (
-              <RequestRow key={r.id} request={r} direction="incoming" />
-            ))}
+            {groupRequestRows(incoming).map((entry) =>
+              entry.type === "single" ? (
+                <RequestRow key={entry.row.id} request={entry.row} direction="incoming" />
+              ) : (
+                <RequestGroupRow key={entry.groupKey} rows={entry.rows} direction="incoming" />
+              )
+            )}
           </div>
         )}
       </section>
@@ -102,9 +112,13 @@ export default async function RequestsPage() {
           <p className="text-sm text-neutral-400">You haven&apos;t requested anything yet.</p>
         ) : (
           <div className="flex flex-col gap-2">
-            {outgoing.map((r) => (
-              <RequestRow key={r.id} request={r} direction="outgoing" />
-            ))}
+            {groupRequestRows(outgoing).map((entry) =>
+              entry.type === "single" ? (
+                <RequestRow key={entry.row.id} request={entry.row} direction="outgoing" />
+              ) : (
+                <RequestGroupRow key={entry.groupKey} rows={entry.rows} direction="outgoing" />
+              )
+            )}
           </div>
         )}
       </section>

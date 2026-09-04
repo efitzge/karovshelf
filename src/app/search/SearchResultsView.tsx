@@ -2,8 +2,11 @@
 
 import { Fragment, useMemo, useState } from "react";
 import RequestButton from "./RequestButton";
+import SeriesRequestButton from "./SeriesRequestButton";
 import { openLibraryUrl } from "@/lib/openLibrary";
 import BookCover from "@/components/BookCover";
+import SeriesGroupTile from "@/components/SeriesGroupTile";
+import { groupBySeries, mergeForDisplay, volumeRangeLabel } from "@/lib/seriesGrouping";
 
 export type SearchResult = {
   id: string;
@@ -16,6 +19,8 @@ export type SearchResult = {
     cover_url: string | null;
     isbn13: string | null;
     isbn10: string | null;
+    series_title: string | null;
+    series_volume: number | null;
   } | null;
   owner: { id: string; display_name: string; neighbourhood: string } | null;
 };
@@ -48,6 +53,36 @@ function CategoryTag({ category }: { category: CategoryFilter }) {
     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${styles[category]}`}>
       {label}
     </span>
+  );
+}
+
+function GroupDetailPanel({ seriesTitle, items }: { seriesTitle: string; items: SearchResult[] }) {
+  const first = items[0];
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
+      <div className="flex items-start gap-3">
+        <BookCover book={first.book} variant="icon" className="h-24 w-16 rounded" />
+        <div className="min-w-0 flex-1">
+          <div className="font-medium">
+            {seriesTitle} · {volumeRangeLabel(items)}
+          </div>
+          <div className="text-sm text-neutral-500">{(first.book?.authors ?? []).join(", ") || "Unknown author"}</div>
+          <div className="mt-1 text-xs text-neutral-400">
+            {first.owner?.display_name} · {first.owner?.neighbourhood}
+          </div>
+          <div className="mt-2">
+            <SeriesRequestButton libraryItemIds={items.map((i) => i.id)} />
+          </div>
+        </div>
+      </div>
+      <ul className="flex flex-col gap-1 border-t border-neutral-100 pt-2 text-xs text-neutral-500 dark:border-neutral-900">
+        {items.map((i) => (
+          <li key={i.id}>
+            Vol. {i.book?.series_volume} — {i.book?.title}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -128,6 +163,15 @@ export default function SearchResultsView({ results }: { results: SearchResult[]
     }
   }
 
+  // Grouping is scoped per-owner (unlike My Library, results here span many
+  // neighbours - two different people's copies of "Vol. 7"/"Vol. 8" aren't a
+  // set either of them can lend as one unit).
+  const { groups: seriesGroups } = useMemo(
+    () => groupBySeries(sorted, { ownerId: (r) => r.owner?.id }),
+    [sorted]
+  );
+  const displayEntries = useMemo(() => mergeForDisplay(sorted, seriesGroups), [sorted, seriesGroups]);
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
@@ -188,22 +232,40 @@ export default function SearchResultsView({ results }: { results: SearchResult[]
 
       {view === "grid" ? (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(88px,1fr))] gap-3">
-          {sorted.map((r) => (
-            <Fragment key={r.id}>
-              <button
-                onClick={() => setOpenId(openId === r.id ? null : r.id)}
-                className={`flex flex-col gap-1 rounded text-left ${openId === r.id ? "ring-2 ring-neutral-900 ring-offset-2 dark:ring-white dark:ring-offset-neutral-950" : ""}`}
-              >
-                <BookCover book={r.book} variant="tile" className="aspect-[2/3] w-full" />
-                <span className="truncate text-[11px] text-neutral-500">{r.book?.title}</span>
-              </button>
-              {openId === r.id && (
-                <div className="col-span-full">
-                  <DetailPanel r={r} />
-                </div>
-              )}
-            </Fragment>
-          ))}
+          {displayEntries.map((entry) =>
+            entry.type === "single" ? (
+              <Fragment key={entry.item.id}>
+                <button
+                  onClick={() => setOpenId(openId === entry.item.id ? null : entry.item.id)}
+                  className={`flex flex-col gap-1 rounded text-left ${openId === entry.item.id ? "ring-2 ring-neutral-900 ring-offset-2 dark:ring-white dark:ring-offset-neutral-950" : ""}`}
+                >
+                  <BookCover book={entry.item.book} variant="tile" className="aspect-[2/3] w-full" />
+                  <span className="truncate text-[11px] text-neutral-500">{entry.item.book?.title}</span>
+                </button>
+                {openId === entry.item.id && (
+                  <div className="col-span-full">
+                    <DetailPanel r={entry.item} />
+                  </div>
+                )}
+              </Fragment>
+            ) : (
+              <Fragment key={entry.group.key}>
+                <SeriesGroupTile
+                  seriesTitle={entry.group.seriesTitle}
+                  volumeLabel={volumeRangeLabel(entry.group.items)}
+                  count={entry.group.items.length}
+                  coverBook={entry.group.items[0].book}
+                  open={openId === entry.group.key}
+                  onClick={() => setOpenId(openId === entry.group.key ? null : entry.group.key)}
+                />
+                {openId === entry.group.key && (
+                  <div className="col-span-full">
+                    <GroupDetailPanel seriesTitle={entry.group.seriesTitle} items={entry.group.items} />
+                  </div>
+                )}
+              </Fragment>
+            )
+          )}
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800">
