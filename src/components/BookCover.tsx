@@ -23,11 +23,13 @@ const CATEGORY_TINTS: Record<string, string> = {
 // matching the site's existing hero art in public/art/ - no embedded text,
 // the title below is real HTML rendered on top so it's per-book and
 // theme-independent). Only categories with real art here get it; anything
-// else falls through to the flat tint below. judaica.webp has a dark
-// purple gradient in its bottom third specifically so light title text
-// sits on it legibly - see the CATEGORY_ART_TEXT_ZONE comment below.
+// else falls through to the flat tint below. Each image has its own dark
+// gradient in its bottom third specifically so light (ivory) title text
+// sits on it legibly - see the text-shadow span below.
 const CATEGORY_ART: Record<string, string> = {
   Judaica: "/covers/judaica.webp",
+  Fiction: "/covers/fiction.webp",
+  "Non-fiction": "/covers/non-fiction.webp",
 };
 
 // Uncategorised books have no meaningful color to draw on, but rendering
@@ -99,10 +101,9 @@ export default function BookCover({
       <div className={`relative overflow-hidden rounded shadow-sm ${className}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={art} alt="" className="absolute inset-0 h-full w-full object-cover" />
-        {/* judaica.webp's own bottom-third gradient (dark purple, fading
-            from the artwork's warm tan) is the built-in text-safe zone this
-            sits in - bold + a soft shadow keeps the title readable without
-            needing an extra scrim layered on top. */}
+        {/* Each category art has its own bottom-third gradient baked in as
+            the text-safe zone this sits in - bold + a soft shadow keeps the
+            title readable without needing an extra scrim layered on top. */}
         <span className="absolute inset-x-0 bottom-0 line-clamp-3 p-2 pb-2.5 text-center text-[11px] font-extrabold leading-tight text-amber-50 [text-shadow:0_1px_3px_rgb(0_0_0_/_0.7)]">
           {title}
         </span>
