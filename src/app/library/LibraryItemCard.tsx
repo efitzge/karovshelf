@@ -38,6 +38,8 @@ const LEGIBILITY_LABEL: Record<string, string> = {
   guess: "best guess - please check",
 };
 
+const CATEGORIES = ["", "Fiction", "Non-fiction", "Judaica"];
+
 export default function LibraryItemCard({ item }: { item: LibraryItemWithBook }) {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(item.book?.title ?? "");
@@ -45,6 +47,7 @@ export default function LibraryItemCard({ item }: { item: LibraryItemWithBook })
   const [genre, setGenre] = useState(
     item.book?.genre && item.book.genre !== "Uncategorised" ? item.book.genre : ""
   );
+  const [category, setCategory] = useState(item.book?.category ?? "");
   const [pending, startTransition] = useTransition();
   const [gone, setGone] = useState(false);
 
@@ -125,6 +128,20 @@ export default function LibraryItemCard({ item }: { item: LibraryItemWithBook })
               ))}
             </select>
           </label>
+          <label className="flex flex-col gap-1 text-xs">
+            Category
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+            >
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c || "Uncategorised"}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       )}
 
@@ -149,7 +166,7 @@ export default function LibraryItemCard({ item }: { item: LibraryItemWithBook })
                     title,
                     authors: authors.split(",").map((a) => a.trim()).filter(Boolean),
                     genre: genre.trim() || null,
-                    category: item.book?.category ?? null,
+                    category: category.trim() || null,
                   });
                   setEditing(false);
                 })
@@ -164,7 +181,7 @@ export default function LibraryItemCard({ item }: { item: LibraryItemWithBook })
           </>
         ) : (
           <button onClick={() => setEditing(true)} className="rounded border border-neutral-300 px-2 py-1 dark:border-neutral-700">
-            Fix title/author
+            Fix details
           </button>
         )}
 
