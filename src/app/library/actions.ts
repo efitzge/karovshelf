@@ -81,6 +81,20 @@ export async function correctBook(
  * item gets its own new books row (never a shared-cache UPDATE), keyed back
  * up by a client-generated lookup_key since a multi-row INSERT's RETURNING
  * order isn't something to rely on.
+ *
+ * The library_item this repoints was, before this edit, either pointed at a
+ * shared catalogue match (never touched - other owners' libraries may still
+ * reference it) or at this owner's own private placeholder. A placeholder
+ * maps 1:1 to exactly one library_item and is never looked up by anyone else
+ * (see pipeline/worker.py's insert_placeholder_book docstring), so once we've
+ * repointed away from it nothing can still reference it - it's now pure
+ * orphaned junk. Deleted at the end of this same action, same cleanup
+ * `supersede_owner_placeholder()` already does on the Python pipeline side.
+ * Found 2026-09-09: every "fix details"/bulk-correct edit was leaving its old
+ * placeholder behind uncleaned, so a book corrected repeatedly (or bulk-set
+ * by mistake) accumulated one dead row per edit - e.g. one real title ended
+ * up with 8 duplicate placeholder rows carrying stale, inconsistent
+ * genre/category values from past edits.
  */
 export async function bulkCorrectBooks(
   edits: {
@@ -93,6 +107,20 @@ export async function bulkCorrectBooks(
 ) {
   if (edits.length === 0) return;
   const supabase = await createClient();
+
+  const { data: current, error: currentError } = await supabase
+    .from("library_items")
+    .select("id, book_id, books(is_placeholder)")
+    .in(
+      "id",
+      edits.map((e) => e.itemId)
+    );
+  if (currentError) throw currentError;
+  const oldPlaceholderIdByItemId = new Map(
+    (current ?? [])
+      .filter((i) => i.book_id && i.books?.is_placeholder)
+      .map((i) => [i.id, i.book_id as string])
+  );
 
   const keyed = edits.map((e) => ({ ...e, key: "placeholder:" + crypto.randomUUID() }));
 
@@ -125,6 +153,15 @@ export async function bulkCorrectBooks(
   );
   const failed = results.find((r) => r.error);
   if (failed?.error) throw failed.error;
+
+  const orphanedIds = [...oldPlaceholderIdByItemId.values()];
+  if (orphanedIds.length > 0) {
+    const { error: deleteError } = await supabase.from("books").delete().in("id", orphanedIds);
+    // Best-effort: the edit itself already succeeded and is visible, so a
+    // cleanup failure here (e.g. a stale RLS edge case) shouldn't surface as
+    // an error to someone who just corrected a book's title.
+    if (deleteError) console.error("bulkCorrectBooks: failed to clean up old placeholder(s)", deleteError);
+  }
 
   revalidatePath("/library");
 }
