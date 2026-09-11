@@ -141,29 +141,43 @@ export async function bulkCorrectBooks(
 
   const idByKey = new Map((newBooks ?? []).map((b) => [b.lookup_key, b.id]));
 
+  // Never throw inside this map - a rejected Promise.all short-circuits
+  // before any result is inspected, which used to skip the orphan cleanup
+  // below entirely for items that had already succeeded (found 2026-09-11:
+  // one failed item in a 5-item bulk edit meant items 1-3's old placeholders
+  // never got deleted, reopening the exact leak this cleanup exists to
+  // close). Every item now always produces a result; only cleanup for the
+  // items that actually succeeded, then re-throw the first failure after.
   const results = await Promise.all(
-    keyed.map((e) => {
+    keyed.map(async (e) => {
       const bookId = idByKey.get(e.key);
-      if (!bookId) throw new Error(`Bulk insert did not return a book for item ${e.itemId}`);
-      return supabase
+      if (!bookId) {
+        return { itemId: e.itemId, error: new Error(`Bulk insert did not return a book for item ${e.itemId}`) };
+      }
+      const { error } = await supabase
         .from("library_items")
         .update({ book_id: bookId, confirmed: true })
         .eq("id", e.itemId);
+      return { itemId: e.itemId, error };
     })
   );
-  const failed = results.find((r) => r.error);
-  if (failed?.error) throw failed.error;
 
-  const orphanedIds = [...oldPlaceholderIdByItemId.values()];
+  const orphanedIds = results
+    .filter((r) => !r.error)
+    .map((r) => oldPlaceholderIdByItemId.get(r.itemId))
+    .filter((id): id is string => Boolean(id));
   if (orphanedIds.length > 0) {
     const { error: deleteError } = await supabase.from("books").delete().in("id", orphanedIds);
-    // Best-effort: the edit itself already succeeded and is visible, so a
-    // cleanup failure here (e.g. a stale RLS edge case) shouldn't surface as
-    // an error to someone who just corrected a book's title.
+    // Best-effort: each of these edits already succeeded and is visible, so
+    // a cleanup failure here (e.g. a stale RLS edge case) shouldn't surface
+    // as an error to someone who just corrected a book's title.
     if (deleteError) console.error("bulkCorrectBooks: failed to clean up old placeholder(s)", deleteError);
   }
 
   revalidatePath("/library");
+
+  const failed = results.find((r) => r.error);
+  if (failed?.error) throw failed.error;
 }
 
 /**
