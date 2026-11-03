@@ -41,3 +41,15 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 dev.cmd
+
+# secrets and local config (standard block, added 2026-11-03)
+.env
+.env.*
+!.env.example
+!.env.local.example
+*.pem
+*.key
+accounts.local.txt
+*.local.txt
+.vercel
+supabase/.temp
