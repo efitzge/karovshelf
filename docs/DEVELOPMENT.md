@@ -10,7 +10,7 @@ Next.js 15 (App Router) + TypeScript + Tailwind + Supabase (Auth, Postgres, Stor
 No signup flow by design - accounts are created by the site owner via the Supabase
 dashboard, and sign in with email + a short PIN (Supabase password auth).
 
-Scanning itself happens outside this repo, in `E:\karovshelf`. Uploading a
+Scanning itself happens outside this repo, in `E:\Code\karovshelf-pipeline`. Uploading a
 batch here creates `scan_batches.status = 'uploaded'`; the current operating
 default is for the site owner to process that batch manually with Claude via
 the Python project's `manual_batch.py` workflow. The Ollama worker remains a
